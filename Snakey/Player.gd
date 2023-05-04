@@ -26,33 +26,29 @@ func _process(delta):
 
 	if velocity.length() > 0:
 		velocity = velocity.normalized() * speed
-		$Monito.play()
+		$AnimatedSprite.play()
 	else:
-		$Monito.stop()
+		$AnimatedSprite.stop()
 		
 	position += velocity * delta
 	position.x = clamp(position.x, 0, screen_size.x)
 	position.y = clamp(position.y, 0, screen_size.y)
 	if velocity.x != 0:
-		$Monito.animation = "walk"
-		$Monito.flip_v = false
+		$AnimatedSprite.animation = "walk"
+		$AnimatedSprite.flip_v = false
 		# See the note below about boolean assignment.
-		$Monito.flip_h = velocity.x < 0
+		$AnimatedSprite.flip_h = velocity.x < 0
 	elif velocity.y != 0:
-		$Monito.animation = "up"
-		$Monito.flip_v = velocity.y > 0
+		$AnimatedSprite.animation = "up"
+		$AnimatedSprite.flip_v = velocity.y > 0
 		
 func start(pos):
 	position = pos
 	show()
 	$CollisionShape2D.disabled = false
 	
-func _on_body_entered(body):
+func _on_Player_body_entered(body):
 	hide() # Player disappears after being hit.
 	emit_signal("hit")
 	# Must be deferred as we can't change physics properties on a physics callback.
 	$CollisionShape2D.set_deferred("disabled", true)
-
-
-func _on_Player_hit():
-	pass # Replace with function body.
