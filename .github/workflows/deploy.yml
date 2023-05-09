@@ -1,0 +1,51 @@
+name: Deploy Astro Site
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    env:
+      AWS_REGION: 
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 8
+          run_install: false
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+      - name: Caching 
+        id: astro-cache-build
+        uses: actions/cache@v3
+        with:
+          path: |
+            public
+            node_modules
+            ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-grekz-games-build-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/public*') }}
+          restore-keys: |
+            ${{ runner.os }}-grekz-games-build-
+      - name: Install dependencies
+        run: pnpm install
+      - name: Build
+        run: pnpm run build
+      - name: Set AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: Deploy to S3
+        run: pnpm run deploy
