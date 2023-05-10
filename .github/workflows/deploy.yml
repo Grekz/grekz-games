@@ -2,6 +2,8 @@ name: Deploy Astro Site
 
 on:
   push:
+    tags:
+      - 'v*'
     branches:
       - main
 jobs:
@@ -42,10 +44,12 @@ jobs:
       - name: Build
         run: pnpm run build
       - name: Set AWS credentials
+        if: startsWith(github.event.ref, 'refs/tags/v')
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_REGION }}
       - name: Deploy to S3
+        if: startsWith(github.event.ref, 'refs/tags/v')
         run: pnpm run deploy
